@@ -11,7 +11,7 @@ class GAE(nn.Module):
     """Graph Auto Encoder (see: https://arxiv.org/abs/1611.07308) - Probabilistic Version"""
 
     def __init__(self, data, n_hidden, n_latent, dropout, bias, xavier_init=True):
-        super(GAE, self).__init__()
+        super().__init__()
 
         # Data
         self.x = data['features']
@@ -34,13 +34,8 @@ class GAE(nn.Module):
         self.gc2 = GraphConvolution(self.n_hidden, self.n_latent, self.bias)
         self.dropout = dropout
 
-        self.sigmoid = nn.Sigmoid()
-        self.fudge = 1e-7
-
         # Adding PReLU seemingly made a difference for TO
         self.prelu1 = nn.PReLU()
-
-        self.ln1 = nn.BatchNorm1d(self.n_hidden)
 
         if xavier_init:
             # Initialise the GCN weights to Xavier Uniform
@@ -51,7 +46,6 @@ class GAE(nn.Module):
 
         # Perform the encoding stage using a two layer GCN
         x = self.prelu1(self.gc1(x, adj))
-        #x = self.ln1(x)
         x = F.dropout(x, self.dropout, training=self.training)
         x = self.gc2(x, adj)
 
@@ -63,7 +57,7 @@ class GAE(nn.Module):
         x = self.encode_graph(x, adj)
         # Decoder
         x = F.dropout(x, self.dropout, training=self.training)
-        adj_hat = self.sigmoid(torch.spmm(x, x.t()))
+        adj_hat = torch.spmm(x, x.t())
 
         return adj_hat
 

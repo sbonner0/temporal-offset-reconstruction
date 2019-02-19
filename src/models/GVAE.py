@@ -11,7 +11,7 @@ class GVAE(nn.Module):
     """Graph Auto Encoder (see: https://arxiv.org/abs/1611.07308) - Variational Version"""
 
     def __init__(self, data, n_hidden, n_latent, dropout, bias, xavier_init=True):
-        super(GVAE, self).__init__()
+        super().__init__()
 
         # Device
         self.device = None
@@ -39,9 +39,6 @@ class GVAE(nn.Module):
         self.gc2_sig = GraphConvolution(self.n_hidden, self.n_latent, self.bias)
         self.dropout = dropout
 
-        self.sigmoid = nn.Sigmoid()
-        self.fudge = 1e-7
-
         if xavier_init:
             # Initialise the GCN weights to Xavier Uniform
             torch.nn.init.xavier_uniform_(self.gc1.weight)
@@ -61,7 +58,7 @@ class GVAE(nn.Module):
 
     def decode_graph(self, z):
         # Here the reconstruction is based upon the inner product between the latent representation
-        adj_hat = (self.sigmoid(torch.mm(z, z.t())) + self.fudge) * (1 - 2 * self.fudge)
+        adj_hat = torch.mm(z, z.t())
 
         return adj_hat
 
